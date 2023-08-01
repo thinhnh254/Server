@@ -17,7 +17,7 @@ let handleLogin = async (req, res) => {
     errCode: userData.errCode,
     message: userData.errMessage,
     token: userData.token,
-    // refreshtoken: userData.refreshtoken,
+    refreshtoken: userData.rftoken,
   });
 };
 
@@ -26,7 +26,27 @@ let handleCreateNewUser = async (req, res) => {
   return res.status(200).json(message);
 };
 
+let handleUpdateUser = async (req, res) => {
+  // try {
+  //   const userId = req.params.id;
+  //   let data = req.body;
+  //   if (!userId) {
+  //     return res.status(200).json({
+  //       status: "ERR",
+  //       message: "The userId is required",
+  //     });
+  //   }
+  //   let message = await UserService.updateUserData(userId, data);
+  //   return res.status(200).json(message);
+  // } catch (e) {
+  //   return res.status(500).json({
+  //     message: e,
+  //   });
+  // }
+};
+
 module.exports = {
   handleCreateNewUser,
   handleLogin,
+  handleUpdateUser,
 };

@@ -1,6 +1,9 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
-const { genneralAccessToken, genneralRefreshToken } = require("../routes/JwtService");
+const {
+  genneralAccessToken,
+  genneralRefreshToken,
+} = require("../routes/JwtService");
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -55,13 +58,14 @@ let handleUserLogin = (email, password) => {
               id: user.id,
               isAdmin: user.isAdmin,
             });
+            userData.token = access_token;
 
             const refresh_token = await genneralRefreshToken({
               id: user.id,
               isAdmin: user.isAdmin,
             });
-            userData.token = access_token;
-            userData.refresh_token = refresh_token;
+
+            userData.rftoken = refresh_token;
           } else {
             userData.errCode = 3;
             userData.errMessage = "!Password";
@@ -112,7 +116,33 @@ let createNewUser = (data) => {
   });
 };
 
+let updateUserData = (id, data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const checkUser = await User.findOne({
+        _id: id,
+      });
+      if (checkUser === null) {
+        resolve({
+          status: "OK",
+          message: "The user is not required",
+        });
+      }
+      const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+
+      resolve({
+        status: "OK",
+        message: "SUCCESS",
+        data: updatedUser,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
 module.exports = {
   createNewUser,
   handleUserLogin,
+  updateUserData,
 };

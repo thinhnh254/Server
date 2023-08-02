@@ -18,6 +18,28 @@ let hashUserPassword = (password) => {
   });
 };
 
+// let checkUserId = (userId) => {
+//   return new Promise(async (resolve, reject) => {
+//     try {
+//       const isValidObjectId = User.isValidObjectId(userId);
+
+//       if (!isValidObjectId) {
+//         resolve(false);
+//       } else {
+//         let user = await User.findById(userId);
+
+//         if (user) {
+//           resolve(true);
+//         } else {
+//           resolve(false);
+//         }
+//       }
+//     } catch (e) {
+//       reject(e);
+//     }
+//   });
+// };
+
 let checkUserEmail = (userEmail) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -119,6 +141,13 @@ let createNewUser = (data) => {
 let updateUserData = (id, data) => {
   return new Promise(async (resolve, reject) => {
     try {
+      //   let isExist = await checkUserId(id);
+      //   if (!isExist) {
+      //     resolve({
+      //       status: "OK",
+      //       message: "The user is not required",
+      //     });
+      //   }
       const checkUser = await User.findOne({
         _id: id,
       });
@@ -141,8 +170,68 @@ let updateUserData = (id, data) => {
   });
 };
 
+let deleteUser = (userId) => {
+  return new Promise(async (resolve, reject) => {
+    let foundUser = await User.findOne({
+      _id: userId,
+    });
+    if (!foundUser) {
+      resolve({
+        errCode: 2,
+        errMessage: "The user isn't exist",
+      });
+    }
+
+    // await User.findByIdAndRemove(userId);
+
+    resolve({
+      errCode: 0,
+      message: "The user is delete",
+    });
+  });
+};
+
+let getAllUsers = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let users = await User.find({}, "-password");
+      resolve(users);
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+let getDetailsUsers = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let users = await User.findOne(
+        {
+          _id: id,
+        },
+        "-password"
+      );
+
+      if (users === "null") {
+        resolve({
+          status: "OK",
+          message: "User is not defined",
+        });
+      }
+      resolve({
+        users,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
 module.exports = {
   createNewUser,
   handleUserLogin,
   updateUserData,
+  deleteUser,
+  getAllUsers,
+  getDetailsUsers,
 };

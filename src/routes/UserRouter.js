@@ -8,9 +8,9 @@ const {
 
 router.post("/login", userController.handleLogin);
 router.post("/register", userController.handleCreateNewUser);
-router.put("/update-user/:id", userController.handleUpdateUser);
+router.put("/edit/:id", userController.handleUpdateUser);
 router.delete(
-  "/delete-user/:id",
+  "/delete/:id",
   authMiddleware,
   userController.handleDeleteUser
 );

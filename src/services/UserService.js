@@ -182,7 +182,7 @@ let deleteUser = (userId) => {
       });
     }
 
-    // await User.findByIdAndRemove(userId);
+    await User.findByIdAndRemove(userId);
 
     resolve({
       errCode: 0,

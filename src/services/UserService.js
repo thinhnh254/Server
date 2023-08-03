@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const {
   genneralAccessToken,
   genneralRefreshToken,
-} = require("../routes/JwtService");
+} = require("./JwtService");
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -226,6 +226,8 @@ let getDetailsUsers = (id) => {
     }
   });
 };
+
+
 
 module.exports = {
   createNewUser,

@@ -1,4 +1,5 @@
 const UserService = require("../services/UserService");
+const JwtService = require("../services/JwtService");
 
 let handleLogin = async (req, res) => {
   let email = req.body.email;
@@ -82,6 +83,24 @@ let handleGetDetailsUser = async (req, res) => {
   });
 };
 
+let refreshToken = async (req, res) => {
+  try {
+    const token = req.headers.token.split(" ")[1];
+    if (!token) {
+      return res.status(200).json({
+        errCode: 1,
+        errMessage: "Missing required token",
+      });
+    }
+    let message = await JwtService.refreshTokenJwtService(token);
+    return res.status(200).json(message);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+
 module.exports = {
   handleCreateNewUser,
   handleLogin,
@@ -89,4 +108,5 @@ module.exports = {
   handleDeleteUser,
   handleGetAllUser,
   handleGetDetailsUser,
+  refreshToken,
 };

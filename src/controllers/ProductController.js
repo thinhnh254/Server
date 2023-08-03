@@ -65,14 +65,14 @@ let handleDeleteProduct = async (req, res) => {
 };
 
 let handleGetAllProduct = async (req, res) => {
-  let products = await ProductService.getAllProducts();
+  const { limit, page } = req.body;
+  let products = await ProductService.getAllProducts(Number(limit), Number(page));
   return res.status(200).json({
     errCode: 0,
     errMessage: "OK",
     data: products,
   });
-}
-
+};
 
 module.exports = {
   handleCreateProduct,

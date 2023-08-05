@@ -1,9 +1,6 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
-const {
-  genneralAccessToken,
-  genneralRefreshToken,
-} = require("./JwtService");
+const { genneralAccessToken, genneralRefreshToken } = require("./JwtService");
 
 const salt = bcrypt.genSaltSync(10);
 
@@ -72,8 +69,8 @@ let handleUserLogin = (email, password) => {
           let check = await bcrypt.compareSync(password, user.password);
 
           if (check) {
-            userData.errCode = 0;
-            userData.errMessage = "Ok";
+            userData.status = "OK";
+            userData.errMessage = "SUCCESS";
             delete user.password;
             userData.user = user;
             const access_token = await genneralAccessToken({
@@ -89,15 +86,15 @@ let handleUserLogin = (email, password) => {
 
             userData.rftoken = refresh_token;
           } else {
-            userData.errCode = 3;
-            userData.errMessage = "!Password";
+            userData.status = "ERROR";
+            userData.errMessage = "Wrong Password";
           }
         } else {
-          userData.errCode = 2;
+          userData.status = "ERROR";
           userData.errMessage = "User's not found!";
         }
       } else {
-        userData.errCode = 1;
+        userData.status = "ERROR";
         userData.errMessage = "Email does not exist";
       }
 
@@ -115,21 +112,26 @@ let createNewUser = (data) => {
       let check = await checkUserEmail(data.email);
       if (check) {
         resolve({
-          errCode: 1,
-          message: "Your email is already in used, Try another email",
+          status: "ERROR",
+          message: "Your email is already in used!",
+        });
+      }
+      if (data.password !== data.confirmPassword) {
+        resolve({
+          status: "ERROR",
+          message: "Password must equal Confirm Password",
         });
       }
       let hashPasswordFromBcrypt = await hashUserPassword(data.password);
       await User.create({
-        name: data.name,
         email: data.email,
+        name: data.name,
         password: hashPasswordFromBcrypt,
         confirm: data.confirmPassword,
-        phone: data.phone,
+        // phone: data.phone,
       });
 
       resolve({
-        errCode: 0,
         message: "OK",
       });
     } catch (e) {
@@ -226,8 +228,6 @@ let getDetailsUsers = (id) => {
     }
   });
 };
-
-
 
 module.exports = {
   createNewUser,

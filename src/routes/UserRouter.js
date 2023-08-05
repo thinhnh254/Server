@@ -9,11 +9,7 @@ const {
 router.post("/login", userController.handleLogin);
 router.post("/register", userController.handleCreateNewUser);
 router.put("/edit/:id", userController.handleUpdateUser);
-router.delete(
-  "/delete/:id",
-  authMiddleware,
-  userController.handleDeleteUser
-);
+router.delete("/delete/:id", authMiddleware, userController.handleDeleteUser);
 router.get("/getAll", authMiddleware, userController.handleGetAllUser);
 router.get(
   "/getDetails/:id",

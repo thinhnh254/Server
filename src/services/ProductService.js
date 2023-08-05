@@ -110,13 +110,28 @@ let deleteProduct = (productId) => {
   });
 };
 
-let getAllProducts = (limit, page) => {
+let getAllProducts = (limit, page, sort) => {
   return new Promise(async (resolve, reject) => {
     try {
       const totalProduct = await Product.count();
+      if (sort) {
+        const objectSort = {};
+        objectSort[sort[1]] = sort[0];
+        let productSort = await Product.find()
+          .limit(limit)
+          .skip(page * limit)
+          .sort(objectSort);
+        resolve({
+          data: productSort,
+          total: totalProduct,
+          page: page + 1,
+          totalPage: Math.ceil(totalProduct / limit),
+        });
+      }
       let products = await Product.find()
         .limit(limit)
-        .skip(page * limit);
+        .skip(page * limit)
+        .sort({ name: sort });
       resolve({
         data: products,
         total: totalProduct,

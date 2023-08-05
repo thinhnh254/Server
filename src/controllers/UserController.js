@@ -2,12 +2,11 @@ const UserService = require("../services/UserService");
 const JwtService = require("../services/JwtService");
 
 let handleLogin = async (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
+  let { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(500).json({
-      errCode: 1,
+    return res.status(200).json({
+      status: "ERROR",
       message: "Missing Input params",
     });
   }
@@ -15,7 +14,7 @@ let handleLogin = async (req, res) => {
   let userData = await UserService.handleUserLogin(email, password);
 
   return res.status(200).json({
-    errCode: userData.errCode,
+    status: userData.status,
     message: userData.errMessage,
     token: userData.token,
     refreshtoken: userData.rftoken,
@@ -23,6 +22,14 @@ let handleLogin = async (req, res) => {
 };
 
 let handleCreateNewUser = async (req, res) => {
+  let { email, name, password, confirmPassword } = req.body;
+
+  if (!email || !name || !password || !confirmPassword) {
+    return res.status(200).json({
+      status: "ERROR",
+      message: "Missing Input params",
+    });
+  }
   let message = await UserService.createNewUser(req.body);
   return res.status(200).json(message);
 };

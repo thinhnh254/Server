@@ -65,8 +65,12 @@ let handleDeleteProduct = async (req, res) => {
 };
 
 let handleGetAllProduct = async (req, res) => {
-  const { limit, page } = req.body;
-  let products = await ProductService.getAllProducts(Number(limit), Number(page));
+  const { limit, page, sort } = req.body;
+  let products = await ProductService.getAllProducts(
+    Number(limit) || 8,
+    Number(page) || 0,
+    sort
+  );
   return res.status(200).json({
     errCode: 0,
     errMessage: "OK",

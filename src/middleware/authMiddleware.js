@@ -6,17 +6,16 @@ const authMiddleware = (req, res, next) => {
   const token = req.headers.token.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
     if (err) {
-      return res.status(400).json({
-        message: "The authenticaion",
+      return res.status(404).json({
+        message: "The authemtication",
         status: "ERROR",
       });
     }
-    const { payload } = user;
-    if (payload?.isAdmin) {
+    if (user?.isAdmin) {
       next();
     } else {
-      return res.status(400).json({
-        message: "The authenticaion",
+      return res.status(404).json({
+        message: "The authemtication",
         status: "ERROR",
       });
     }
@@ -24,21 +23,22 @@ const authMiddleware = (req, res, next) => {
 };
 
 const authUserMiddleware = (req, res, next) => {
-  const token = req.headers.token.split(" ")[1];
+  const token = req.headers.authorization;
   const userId = req.params.id;
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
     if (err) {
-      return res.status(400).json({
-        message: "The authenticaion",
+      console.log(err);
+      return res.status(404).json({
+        message: "The authemtication",
         status: "ERROR",
       });
     }
-    const { payload } = user;
-    if (payload?.isAdmin || payload?.id === userId) {
+    console.log("user: ", user);
+    if (user?.isAdmin || user?.id === userId) {
       next();
     } else {
-      return res.status(400).json({
-        message: "The authenticaion",
+      return res.status(404).json({
+        message: "The authemtication user",
         status: "ERROR",
       });
     }

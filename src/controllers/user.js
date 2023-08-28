@@ -1,5 +1,9 @@
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../middleware/jwt");
 
 const register = asyncHandler(async (req, res) => {
   const { email, password, firstname, lastname } = req.body;
@@ -36,8 +40,20 @@ const login = asyncHandler(async (req, res) => {
   const response = await User.findOne({ email: email });
   if (response && (await response.isCorrectPassword(password))) {
     const { password, role, ...userData } = response.toObject();
+    const accessToken = generateAccessToken(response._id, role);
+    const refreshToken = generateRefreshToken(response._id);
+
+    // Save RT to DB
+    await User.findByIdAndUpdate(response._id, { refreshToken }, { new: true });
+
+    // Save RT to cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     return res.status(200).json({
       success: true,
+      accessToken,
       userData,
     });
   } else {
@@ -45,60 +61,16 @@ const login = asyncHandler(async (req, res) => {
   }
 });
 
-// let handleLogin = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
-//     const isCheckEmail = reg.test(email);
-//     if (!email || !password) {
-//       return res.status(200).json({
-//         status: "ERROR",
-//         message: "The input is required",
-//       });
-//     } else if (!isCheckEmail) {
-//       return res.status(200).json({
-//         status: "ERROR",
-//         message: "The input is email",
-//       });
-//     }
-//     const message = await UserService.handleUserLogin(req.body);
-//     return res.status(200).json({ message });
-//   } catch (e) {
-//     return res.status(404).json({
-//       message: e,
-//     });
-//   }
-// };
+const getCurrent = asyncHandler(async (req, res) => {
+  const _id = req.user;
 
-// let handleCreateNewUser = async (req, res) => {
-//   try {
-//     const { name, email, password, confirmPassword } = req.body;
-//     const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
-//     const isCheckEmail = reg.test(email);
-//     if (!email || !name || !password || !confirmPassword) {
-//       return res.status(200).json({
-//         status: "ERROR",
-//         message: "The input is required",
-//       });
-//     } else if (!isCheckEmail) {
-//       return res.status(200).json({
-//         status: "ERROR",
-//         message: "The input is email",
-//       });
-//     } else if (password !== confirmPassword) {
-//       return res.status(200).json({
-//         status: "ERROR",
-//         message: "The password is equal confirmPassword",
-//       });
-//     }
-//     let message = await UserService.createNewUser(req.body);
-//     return res.status(200).json(message);
-//   } catch (e) {
-//     return res.status(404).json({
-//       message: e,
-//     });
-//   }
-// };
+  const user = await User.findById(_id).select("-password -role -refreshToken");
+
+  return res.status(200).json({
+    success: false,
+    response: user ? user : "User not found",
+  });
+});
 
 // let handleUpdateUser = async (req, res) => {
 //   try {
@@ -164,12 +136,11 @@ const login = asyncHandler(async (req, res) => {
 // };
 
 module.exports = {
-  // handleCreateNewUser,
-  // handleLogin,
   // handleUpdateUser,
   // handleDeleteUser,
   // handleGetAllUser,
   // handleGetDetailsUser,
   register,
   login,
+  getCurrent,
 };

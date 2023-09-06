@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
+const jwt = require("jsonwebtoken");
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -72,75 +73,58 @@ const getCurrent = asyncHandler(async (req, res) => {
   });
 });
 
-// let handleUpdateUser = async (req, res) => {
-//   try {
-//     const userId = req.params.id;
-//     const data = req.body;
-//     if (!userId) {
-//       return res.status(200).json({
-//         status: "ERR",
-//         message: "The userId is required",
-//       });
-//     }
-//     let message = await UserService.updateUserData(userId, data);
-//     return res.status(200).json(message);
-//   } catch (e) {
-//     return res.status(404).json({
-//       message: e,
-//     });
-//   }
-// };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  //get token from cookies
+  const cookie = req.cookies;
 
-// let handleDeleteUser = async (req, res) => {
-//   try {
-//     const userId = req.params.id;
-//     if (!userId) {
-//       return res.status(200).json({
-//         status: "ERROR",
-//         message: "The userId is required",
-//       });
-//     }
-//     let message = await UserService.deleteUser(userId);
-//     return res.status(200).json(message);
-//   } catch (e) {
-//     return res.status(404).json({
-//       message: e,
-//     });
-//   }
-// };
+  //check have token?
+  if (!cookie && !cookie.refreshToken) {
+    throw new Error("No have refresh token in cookies");
+  }
 
-// let handleGetAllUser = async (req, res) => {
-//   let users = await UserService.getAllUsers();
-//   return res.status(200).json({
-//     errCode: 0,
-//     errMessage: "OK",
-//     data: users,
-//   });
-// };
+  //check token is valid?
+  const results = jwt.verify(cookie.refreshToken, process.env.JWT_SECRET);
 
-// let handleGetDetailsUser = async (req, res) => {
-//   let id = req.params.id;
-//   if (!id) {
-//     return res.status(200).json({
-//       errCode: 1,
-//       errMessage: "Missing required parameters",
-//       users: [],
-//     });
-//   }
-//   let message = await UserService.getDetailsUsers(id);
-//   return res.status(200).json({
-//     errCode: 0,
-//     errMessage: "OK",
-//     data: message,
-//   });
-// };
+  const response = await User.findOne({
+    _id: results._id,
+    refreshToken: cookie.refreshToken,
+  });
+
+  return res.status(200).json({
+    success: response ? true : false,
+    newAccessToken: response
+      ? generateAccessToken(response._id, response.role)
+      : "Refresh Token",
+  });
+});
+
+const logout = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+
+  if (!cookie || !cookie.refreshToken) {
+    throw new Error("Not have refresh Token in cookie");
+  }
+
+  //remove rf on db
+  await User.findOneAndUpdate(
+    { refreshToken: cookie.refreshToken },
+    { refreshToken: "" },
+    { new: true }
+  );
+
+  //remove rf in cookie
+  res.clearCookie("refreshToken", { httpOnly: true, secure: true });
+
+  return res.status(200).json({
+    success: true,
+    message: "Logout done",
+  });
+});
 
 module.exports = {
-  // handleUpdateUser,
-  // handleDeleteUser,
-  // handleGetAllUser,
-  // handleGetDetailsUser,
   register,
   login,
   getCurrent,
+  refreshAccessToken,
+  logout,
 };

@@ -9,6 +9,8 @@ router.post("/login", userController.login);
 
 router.get("/current", verifyAccessToken, userController.getCurrent);
 
+router.put("/update", verifyAccessToken, userController.updateUser);
+
 router.post("/refreshtoken", userController.refreshAccessToken);
 
 router.get("/logout", userController.logout);

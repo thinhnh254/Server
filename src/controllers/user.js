@@ -213,6 +213,24 @@ const deleteUser = asyncHandler(async (req, res) => {
   });
 });
 
+const updateUser = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  if (!_id || Object.keys(req.body).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+  const response = await User.findByIdAndUpdate(_id, req.body, {
+    new: true,
+  }).select("-password -role");
+
+  return res.status(200).json({
+    success: response ? true : false,
+    updateStatus: response ? response : "Update fail",
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -223,4 +241,5 @@ module.exports = {
   resetPassword,
   getAllUsers,
   deleteUser,
+  updateUser,
 };

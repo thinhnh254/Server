@@ -231,6 +231,24 @@ const updateUser = asyncHandler(async (req, res) => {
   });
 });
 
+const updateUserByAdmin = asyncHandler(async (req, res) => {
+  const { uid } = req.params;
+  if (Object.keys(req.body).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing Input",
+    });
+  }
+  const response = await User.findByIdAndUpdate(uid, req.body, {
+    new: true,
+  }).select("-password -role");
+
+  return res.status(200).json({
+    success: response ? true : false,
+    updateStatus: response ? response : "Update fail",
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -242,4 +260,5 @@ module.exports = {
   getAllUsers,
   deleteUser,
   updateUser,
+  updateUserByAdmin,
 };

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user");
-const { verifyAccessToken } = require("../middleware/verifyToken");
+const { verifyAccessToken, isAdmin } = require("../middleware/verifyToken");
 
 router.post("/register", userController.register);
 
@@ -16,5 +16,9 @@ router.get("/logout", userController.logout);
 router.get("/forgotpassword", userController.forgotPassword);
 
 router.put("/resetpassword", userController.resetPassword);
+
+router.get("/", [verifyAccessToken, isAdmin], userController.getAllUsers);
+
+router.delete("/", [verifyAccessToken, isAdmin], userController.deleteUser);
 
 module.exports = router;

@@ -41,15 +41,19 @@ const login = asyncHandler(async (req, res) => {
 
   const response = await User.findOne({ email: email });
   if (response && (await response.isCorrectPassword(password))) {
-    const { password, role, ...userData } = response.toObject();
+    const { password, role, refreshToken, ...userData } = response.toObject();
     const accessToken = generateAccessToken(response._id, role);
-    const refreshToken = generateRefreshToken(response._id);
+    const newRefreshToken = generateRefreshToken(response._id);
 
     // Save RT to DB
-    await User.findByIdAndUpdate(response._id, { refreshToken }, { new: true });
+    await User.findByIdAndUpdate(
+      response._id,
+      { refreshToken: newRefreshToken },
+      { new: true }
+    );
 
     // Save RT to cookie
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -69,7 +73,7 @@ const getCurrent = asyncHandler(async (req, res) => {
   const user = await User.findById(_id).select("-password -role -refreshToken");
 
   return res.status(200).json({
-    success: false,
+    success: user ? true : false,
     response: user ? user : "User not found",
   });
 });
@@ -182,6 +186,33 @@ const resetPassword = asyncHandler(async (req, res) => {
   });
 });
 
+const getAllUsers = asyncHandler(async (req, res) => {
+  const response = await User.find().select("-password -role -refreshToken");
+
+  return res.status(200).json({
+    success: response ? true : false,
+    users: response,
+  });
+});
+
+const deleteUser = asyncHandler(async (req, res) => {
+  const { _id } = req.query;
+  if (!_id) {
+    return res.status(400).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+  const response = await User.findByIdAndDelete(_id);
+
+  return res.status(200).json({
+    success: response ? true : false,
+    users: response
+      ? `User with email: ${response.email} deleted`
+      : "No user delete",
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -190,4 +221,6 @@ module.exports = {
   logout,
   forgotPassword,
   resetPassword,
+  getAllUsers,
+  deleteUser,
 };

@@ -223,7 +223,7 @@ const updateUser = asyncHandler(async (req, res) => {
   }
   const response = await User.findByIdAndUpdate(_id, req.body, {
     new: true,
-  }).select("-password -role");
+  }).select("-password -role -refreshToken");
 
   return res.status(200).json({
     success: response ? true : false,
@@ -241,7 +241,7 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
   }
   const response = await User.findByIdAndUpdate(uid, req.body, {
     new: true,
-  }).select("-password -role");
+  }).select("-password -role -refreshToken");
 
   return res.status(200).json({
     success: response ? true : false,

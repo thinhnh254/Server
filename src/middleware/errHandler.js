@@ -1,5 +1,5 @@
 const notFound = (req, res, next) => {
-  const error = new Error(`Route ${req.originalUrl} not found`);
+  const error = new Error(`Route ${req.originalUrl} not found!`);
   res.status(404);
   next(error);
 };
@@ -13,6 +13,6 @@ const errHandler = (error, req, res, next) => {
 };
 
 module.exports = {
-  errHandler,
   notFound,
+  errHandler,
 };

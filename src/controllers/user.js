@@ -1,29 +1,30 @@
 const User = require("../models/user");
 const asyncHandler = require("express-async-handler");
-const jwt = require("jsonwebtoken");
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../middleware/jwt");
+const jwt = require("jsonwebtoken");
+const sendMail = require("../ultils/sendMail");
+const crypto = require("crypto");
 
 const register = asyncHandler(async (req, res) => {
   const { email, password, firstname, lastname } = req.body;
-
-  if (!email || !password || !firstname || !lastname) {
+  if (!email || !password || !lastname || !firstname)
     return res.status(400).json({
-      success: false,
-      message: "Missing inputs",
+      sucess: false,
+      mes: "Missing inputs",
     });
-  }
 
-  const user = await User.findOne({ email: email });
-  if (user) {
-    throw new Error("User already exist");
-  } else {
+  const user = await User.findOne({ email });
+  if (user) throw new Error("User has existed");
+  else {
     const newUser = await User.create(req.body);
     return res.status(200).json({
-      success: newUser ? true : false,
-      message: newUser ? "Reigster successfully!" : "Something went wrong!",
+      sucess: newUser ? true : false,
+      mes: newUser
+        ? "Register is successfully. Please go login~"
+        : "Something went wrong",
     });
   }
 });
@@ -58,7 +59,7 @@ const login = asyncHandler(async (req, res) => {
       userData,
     });
   } else {
-    throw new Error("Something went wrong");
+    throw new Error("Wrong input");
   }
 });
 
@@ -121,10 +122,72 @@ const logout = asyncHandler(async (req, res) => {
   });
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.query;
+  if (!email) {
+    throw new Error("Missing email");
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new Error(`User with ${email} not found`);
+  }
+
+  const resetToken = user.createPasswordChangedToken();
+  await user.save();
+
+  const html = `Click link to change password, please. This link will expire after 15 minutes from now. <a href=${process.env.URL_SERVER}/user/reset-password/${resetToken}>Click here</a>`;
+
+  const data = {
+    email,
+    html,
+  };
+
+  const result = await sendMail(data);
+
+  return res.status(200).json({
+    success: true,
+    result,
+  });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { password, token } = req.body;
+  if (!password || !token) {
+    throw new Error("Missing Input");
+  }
+
+  const passwordResetToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    throw new Error("Invalid reset token");
+  }
+
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordChangedAt = Date.now();
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  return res.status(200).json({
+    success: user ? true : false,
+    message: user ? "Updated password" : "Something went wrong",
+  });
+});
+
 module.exports = {
   register,
   login,
   getCurrent,
   refreshAccessToken,
   logout,
+  forgotPassword,
+  resetPassword,
 };

@@ -46,20 +46,14 @@ const getAllProduct = asyncHandler(async (req, res) => {
   if (queries?.title) {
     formatedQueries.title = { $regex: queries.title, $options: "i" };
   }
-
   let queryCommand = Product.find(formatedQueries);
 
-  // queryCommand.exec(async (err, response) => {
-  //   if (err) {
-  //     throw new Error(err.message);
-  //   }
-  //   const counts = await Product.find(formatedQueries).countDocuments();
-  //   return res.status(200).json({
-  //     success: response ? true : false,
-  //     products: response ? response : "Can not get all product!",
-  //     counts,
-  //   });
-  // });
+  //Sorting
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    queryCommand = queryCommand.sort(sortBy);
+  }
+
   try {
     const response = await queryCommand.exec();
     const counts = await Product.find(formatedQueries).countDocuments();

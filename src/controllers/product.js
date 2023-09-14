@@ -1,7 +1,6 @@
 const Product = require("../models/product");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
-const product = require("../models/product");
 
 const createProduct = asyncHandler(async (req, res) => {
   if (Object.keys(req.body) === 0) {
@@ -33,12 +32,47 @@ const getProduct = asyncHandler(async (req, res) => {
 });
 
 const getAllProduct = asyncHandler(async (req, res) => {
-  const products = await Product.find();
+  const queries = { ...req.query };
+  const excludeFields = ["limit", "sort", "page", "fields"];
+  excludeFields.forEach((el) => delete queries[el]);
+  let queryString = JSON.stringify(queries);
+  queryString = queryString.replace(
+    /\b(gte|gt|lt|lte)\b/g,
+    (macthedEl) => `$${macthedEl}`
+  );
+  const formatedQueries = JSON.parse(queryString);
 
-  return res.status(200).json({
-    success: products ? true : false,
-    productData: products ? products : "Can not get all product!",
-  });
+  //Filtering
+  if (queries?.title) {
+    formatedQueries.title = { $regex: queries.title, $options: "i" };
+  }
+
+  let queryCommand = Product.find(formatedQueries);
+
+  // queryCommand.exec(async (err, response) => {
+  //   if (err) {
+  //     throw new Error(err.message);
+  //   }
+  //   const counts = await Product.find(formatedQueries).countDocuments();
+  //   return res.status(200).json({
+  //     success: response ? true : false,
+  //     products: response ? response : "Can not get all product!",
+  //     counts,
+  //   });
+  // });
+  try {
+    const response = await queryCommand.exec();
+    const counts = await Product.find(formatedQueries).countDocuments();
+
+    return res.status(200).json({
+      success: response ? true : false,
+      products: response ? response : "Can not get all product!",
+      counts,
+    });
+  } catch (err) {
+    // Handle any errors that occur during the query or counting
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 const updateProduct = asyncHandler(async (req, res) => {

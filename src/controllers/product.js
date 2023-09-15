@@ -54,6 +54,12 @@ const getAllProduct = asyncHandler(async (req, res) => {
     queryCommand = queryCommand.sort(sortBy);
   }
 
+  //Fields limiting
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    queryCommand = queryCommand.select(fields);
+  }
+
   try {
     const response = await queryCommand.exec();
     const counts = await Product.find(formatedQueries).countDocuments();

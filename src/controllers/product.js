@@ -60,14 +60,20 @@ const getAllProduct = asyncHandler(async (req, res) => {
     queryCommand = queryCommand.select(fields);
   }
 
+  //Pagination
+  const page = +req.query.page || 1;
+  const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
+  const skip = (page - 1) * limit;
+  queryCommand.skip(skip).limit(limit);
+
   try {
     const response = await queryCommand.exec();
     const counts = await Product.find(formatedQueries).countDocuments();
 
     return res.status(200).json({
       success: response ? true : false,
-      products: response ? response : "Can not get all product!",
       counts,
+      products: response ? response : "Can not get all product!",
     });
   } catch (err) {
     // Handle any errors that occur during the query or counting

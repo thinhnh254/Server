@@ -1,4 +1,5 @@
 const userRouter = require("./user");
+const blogRouter = require("./blog");
 const productRouter = require("./product");
 const productCategoryRouter = require("./productCategory");
 const blogCategoryRouter = require("./blogCategory");
@@ -8,6 +9,7 @@ const routes = (app) => {
   app.use("/user", userRouter);
   app.use("/product", productRouter);
   app.use("/productcategory", productCategoryRouter);
+  app.use("/blog", blogRouter);
   app.use("/blogcategory", blogCategoryRouter);
 
   app.use(notFound);

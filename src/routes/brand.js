@@ -1,18 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/brand");
+const Controller = require("../controllers/brand");
 const { verifyAccessToken, isAdmin } = require("../middleware/verifyToken");
 
-router.post("/", [verifyAccessToken, isAdmin], userController.createNewBrand);
+router.post("/", [verifyAccessToken, isAdmin], Controller.createNewBrand);
 
-router.put("/:brid", [verifyAccessToken, isAdmin], userController.updateBrand);
+router.put("/:brid", [verifyAccessToken, isAdmin], Controller.updateBrand);
 
-router.delete(
-  "/:brid",
-  [verifyAccessToken, isAdmin],
-  userController.deleteBrand
-);
+router.delete("/:brid", [verifyAccessToken, isAdmin], Controller.deleteBrand);
 
-router.get("/", userController.getAllBrand);
+router.get("/", Controller.getAllBrand);
 
 module.exports = router;

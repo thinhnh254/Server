@@ -1,22 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/productCategory");
+const Controller = require("../controllers/productCategory");
 const { verifyAccessToken, isAdmin } = require("../middleware/verifyToken");
 
-router.post("/", [verifyAccessToken, isAdmin], userController.createCategory);
+router.post("/", [verifyAccessToken, isAdmin], Controller.createCategory);
 
-router.put(
-  "/:pcid",
-  [verifyAccessToken, isAdmin],
-  userController.updateCategory
-);
+router.put("/:pcid", [verifyAccessToken, isAdmin], Controller.updateCategory);
 
 router.delete(
   "/:pcid",
   [verifyAccessToken, isAdmin],
-  userController.deleteCategory
+  Controller.deleteCategory
 );
 
-router.get("/", userController.getAllCategory);
+router.get("/", Controller.getAllCategory);
 
 module.exports = router;

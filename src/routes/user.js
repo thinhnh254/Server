@@ -1,32 +1,28 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/user");
+const Controller = require("../controllers/user");
 const { verifyAccessToken, isAdmin } = require("../middleware/verifyToken");
 
-router.post("/register", userController.register);
+router.post("/register", Controller.register);
 
-router.post("/login", userController.login);
+router.post("/login", Controller.login);
 
-router.get("/current", verifyAccessToken, userController.getCurrent);
+router.get("/current", verifyAccessToken, Controller.getCurrent);
 
-router.put("/update", verifyAccessToken, userController.updateUser);
+router.put("/update", verifyAccessToken, Controller.updateUser);
 
-router.post("/refreshtoken", userController.refreshAccessToken);
+router.post("/refreshtoken", Controller.refreshAccessToken);
 
-router.get("/logout", userController.logout);
+router.get("/logout", Controller.logout);
 
-router.get("/forgotpassword", userController.forgotPassword);
+router.get("/forgotpassword", Controller.forgotPassword);
 
-router.put("/resetpassword", userController.resetPassword);
+router.put("/resetpassword", Controller.resetPassword);
 
-router.get("/", [verifyAccessToken, isAdmin], userController.getAllUsers);
+router.get("/", [verifyAccessToken, isAdmin], Controller.getAllUsers);
 
-router.delete("/", [verifyAccessToken, isAdmin], userController.deleteUser);
+router.delete("/", [verifyAccessToken, isAdmin], Controller.deleteUser);
 
-router.put(
-  "/:uid",
-  [verifyAccessToken, isAdmin],
-  userController.updateUserByAdmin
-);
+router.put("/:uid", [verifyAccessToken, isAdmin], Controller.updateUserByAdmin);
 
 module.exports = router;

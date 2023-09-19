@@ -1,22 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/blogCategory");
+const Controller = require("../controllers/blogCategory");
 const { verifyAccessToken, isAdmin } = require("../middleware/verifyToken");
 
-router.post("/", [verifyAccessToken, isAdmin], userController.createCategory);
+router.post("/", [verifyAccessToken, isAdmin], Controller.createCategory);
 
-router.put(
-  "/:bcid",
-  [verifyAccessToken, isAdmin],
-  userController.updateCategory
-);
+router.put("/:bcid", [verifyAccessToken, isAdmin], Controller.updateCategory);
 
 router.delete(
   "/:bcid",
   [verifyAccessToken, isAdmin],
-  userController.deleteCategory
+  Controller.deleteCategory
 );
 
-router.get("/", userController.getAllCategory);
+router.get("/", Controller.getAllCategory);
 
 module.exports = router;

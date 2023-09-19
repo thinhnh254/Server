@@ -43,7 +43,124 @@ const deleteBlog = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: response ? true : false,
-    getBlogStatus: response ? response : "Can not delete blogs!",
+    deleteBlogStatus: response ? response : "Can not delete blogs!",
+  });
+});
+
+const likeBlog = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { bid } = req.params;
+
+  if (!bid) {
+    return res.status(400).json("Missing Input");
+  }
+
+  const blog = await Blog.findById(bid);
+
+  const alreadyDislike = blog?.dislikes?.find((el) => el.toString() === _id);
+  if (alreadyDislike) {
+    const response = await Blog.findByIdAndUpdate(
+      bid,
+      {
+        $pull: { dislikes: _id },
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: response ? true : false,
+      rs: response,
+    });
+  }
+
+  const isLiked = blog?.likes?.find((el) => el.toString() === _id);
+  if (isLiked) {
+    const response = await Blog.findByIdAndUpdate(
+      bid,
+      {
+        $pull: { likes: _id },
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: response ? true : false,
+      rs: response,
+    });
+  } else {
+    const response = await Blog.findByIdAndUpdate(
+      bid,
+      { $push: { likes: _id } },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: response ? true : false,
+      rs: response,
+    });
+  }
+});
+
+const dislikeBlog = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { bid } = req.params;
+
+  if (!bid) {
+    return res.status(400).json("Missing Input");
+  }
+
+  const blog = await Blog.findById(bid);
+
+  const alreadyLike = blog?.likes?.find((el) => el.toString() === _id);
+  if (alreadyLike) {
+    const response = await Blog.findByIdAndUpdate(
+      bid,
+      {
+        $pull: { likes: _id },
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: response ? true : false,
+      rs: response,
+    });
+  }
+
+  const isDislike = blog?.dislikes?.find((el) => el.toString() === _id);
+  if (isDislike) {
+    const response = await Blog.findByIdAndUpdate(
+      bid,
+      {
+        $pull: { dislikes: _id },
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: response ? true : false,
+      rs: response,
+    });
+  } else {
+    const response = await Blog.findByIdAndUpdate(
+      bid,
+      { $push: { dislikes: _id } },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: response ? true : false,
+      rs: response,
+    });
+  }
+});
+
+const getBlog = asyncHandler(async (req, res) => {
+  const { bid } = req.params;
+  const blog = await Blog.findByIdAndUpdate(
+    bid,
+    { $inc: { numberViews: 1 } },
+    { new: true }
+  )
+    .populate("dislikes", "firstname lastname")
+    .populate("likes", "firstname lastname");
+  return res.status(200).json({
+    success: blog ? true : false,
+    rs: blog,
   });
 });
 
@@ -52,4 +169,7 @@ module.exports = {
   updateBlog,
   getBlogs,
   deleteBlog,
+  likeBlog,
+  dislikeBlog,
+  getBlog,
 };

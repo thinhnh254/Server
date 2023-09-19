@@ -43,7 +43,7 @@ const deleteCategory = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: response ? true : false,
-    updateCategoryStatus: response
+    deleteCategoryStatus: response
       ? response
       : "Cannot delete product-category",
   });

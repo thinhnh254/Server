@@ -17,7 +17,7 @@ router.put("/:pid", [verifyAccessToken, isAdmin], Controller.updateProduct);
 router.put(
   "/uploadimage/:pid",
   [verifyAccessToken, isAdmin],
-  uploader.single("image"), // Use "images" as the field name
+  uploader.array("images", 10), // Use "images" as the field name
   Controller.uploadImagesProduct
 );
 

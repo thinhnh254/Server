@@ -6,8 +6,6 @@ const uploader = require("../config/cloudinary.config");
 
 router.get("/", Controller.getAllProduct);
 
-router.get("/:pid", Controller.getProduct);
-
 router.put("/ratings", verifyAccessToken, Controller.ratings);
 
 router.post("/", [verifyAccessToken, isAdmin], Controller.createProduct);
@@ -22,5 +20,7 @@ router.put(
 );
 
 router.delete("/:pid", [verifyAccessToken, isAdmin], Controller.deleteProduct);
+
+router.get("/:pid", Controller.getProduct);
 
 module.exports = router;

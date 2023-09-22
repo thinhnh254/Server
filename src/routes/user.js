@@ -23,6 +23,10 @@ router.get("/", [verifyAccessToken, isAdmin], Controller.getAllUsers);
 
 router.delete("/", [verifyAccessToken, isAdmin], Controller.deleteUser);
 
+router.put("/address", verifyAccessToken, Controller.updateUserAddress);
+
+router.put("/cart", verifyAccessToken, Controller.updateCart);
+
 router.put("/:uid", [verifyAccessToken, isAdmin], Controller.updateUserByAdmin);
 
 module.exports = router;

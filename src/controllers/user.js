@@ -12,8 +12,8 @@ const register = asyncHandler(async (req, res) => {
   const { email, password, firstname, lastname } = req.body;
   if (!email || !password || !lastname || !firstname)
     return res.status(400).json({
-      sucess: false,
-      mes: "Missing inputs",
+      success: false,
+      message: "Missing inputs",
     });
 
   const user = await User.findOne({ email });
@@ -21,8 +21,8 @@ const register = asyncHandler(async (req, res) => {
   else {
     const newUser = await User.create(req.body);
     return res.status(200).json({
-      sucess: newUser ? true : false,
-      mes: newUser
+      success: newUser ? true : false,
+      message: newUser
         ? "Register is successfully. Please go login~"
         : "Something went wrong",
     });
@@ -59,6 +59,7 @@ const login = asyncHandler(async (req, res) => {
     });
     return res.status(200).json({
       success: true,
+      message: "Success!",
       accessToken,
       userData,
     });
@@ -70,7 +71,7 @@ const login = asyncHandler(async (req, res) => {
 const getCurrent = asyncHandler(async (req, res) => {
   const _id = req.user;
 
-  const user = await User.findById(_id).select("-password -role -refreshToken");
+  const user = await User.findById(_id).select("-password  -refreshToken");
 
   return res.status(200).json({
     success: user ? true : false,
@@ -187,12 +188,54 @@ const resetPassword = asyncHandler(async (req, res) => {
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
-  const response = await User.find().select("-password -role -refreshToken");
+  const queries = { ...req.query };
+  const excludeFields = ["limit", "sort", "page", "fields"];
+  excludeFields.forEach((el) => delete queries[el]);
 
-  return res.status(200).json({
-    success: response ? true : false,
-    users: response,
-  });
+  let queryString = JSON.stringify(queries);
+  queryString = queryString.replace(
+    /\b(gte|gt|lt|lte)\b/g,
+    (macthedEl) => `$${macthedEl}`
+  );
+  const formatedQueries = JSON.parse(queryString);
+
+  //Filtering
+  if (queries?.name) {
+    formatedQueries.name = { $regex: queries.name, $options: "i" };
+  }
+  let queryCommand = User.find(formatedQueries);
+
+  //Sorting
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    queryCommand = queryCommand.sort(sortBy);
+  }
+
+  //Fields limiting
+  if (req.query.fields) {
+    const fields = req.query.fields.split(",").join(" ");
+    queryCommand = queryCommand.select(fields);
+  }
+
+  //Pagination
+  const page = +req.query.page || 1;
+  const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
+  const skip = (page - 1) * limit;
+  queryCommand.skip(skip).limit(limit);
+  try {
+    const response = await queryCommand.exec();
+    const counts = await User.find(formatedQueries).countDocuments();
+    //  const response = await User.find().select("-password -role -refreshToken");
+
+    return res.status(200).json({
+      success: response ? true : false,
+      counts,
+      users: response ? response : 'Cannot get all Users',
+    });
+  } catch (err) {
+    // Handle any errors that occur during the query or counting
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 const deleteUser = asyncHandler(async (req, res) => {

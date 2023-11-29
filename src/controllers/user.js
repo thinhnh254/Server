@@ -203,6 +203,14 @@ const getAllUsers = asyncHandler(async (req, res) => {
   if (queries?.name) {
     formatedQueries.name = { $regex: queries.name, $options: "i" };
   }
+  if (req.query.q) {
+    delete formatedQueries.q;
+    formatedQueries["$or"] = [
+      { firstname: { $regex: req.query.q, $options: "i" } },
+      { lastname: { $regex: req.query.q, $options: "i" } },
+      { email: { $regex: req.query.q, $options: "i" } },
+    ];
+  }
   let queryCommand = User.find(formatedQueries);
 
   //Sorting
@@ -230,7 +238,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
     return res.status(200).json({
       success: response ? true : false,
       counts,
-      users: response ? response : 'Cannot get all Users',
+      users: response ? response : "Cannot get all Users",
     });
   } catch (err) {
     // Handle any errors that occur during the query or counting

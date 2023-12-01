@@ -21,7 +21,7 @@ router.put("/resetpassword", Controller.resetPassword);
 
 router.get("/", [verifyAccessToken, isAdmin], Controller.getAllUsers);
 
-router.delete("/", [verifyAccessToken, isAdmin], Controller.deleteUser);
+router.delete("/:uid", [verifyAccessToken, isAdmin], Controller.deleteUser);
 
 router.put("/address", verifyAccessToken, Controller.updateUserAddress);
 

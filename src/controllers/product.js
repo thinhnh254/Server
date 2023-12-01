@@ -3,13 +3,16 @@ const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 
 const createProduct = asyncHandler(async (req, res) => {
-  if (Object.keys(req.body) === 0) {
+  const { title, price, description, category } = req.body;
+  const images = req?.file?.path;
+
+  if (!(title && price && description && category)) {
     throw new Error("Missing input");
   }
 
-  if (req.body && req.body.title) {
-    req.body.slug = slugify(req.body.title);
-  }
+  req.body.slug = slugify(title);
+
+  if (images) req.body.images = images;
 
   const newProduct = await Product.create(req.body);
 
@@ -47,9 +50,9 @@ const getAllProduct = asyncHandler(async (req, res) => {
     formatedQueries.title = { $regex: queries.title, $options: "i" };
   }
   if (queries?.category) {
-    formatedQueries.category = {$regex: queries.category, $options: 'i'}
+    formatedQueries.category = { $regex: queries.category, $options: "i" };
   }
-  const q = {...formatedQueries}
+  const q = { ...formatedQueries };
   let queryCommand = Product.find(q);
 
   //Sorting

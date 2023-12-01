@@ -247,18 +247,13 @@ const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
-  const { _id } = req.query;
-  if (!_id) {
-    return res.status(400).json({
-      success: false,
-      message: "User not found",
-    });
-  }
-  const response = await User.findByIdAndDelete(_id);
+  const { uid } = req.params;
+
+  const response = await User.findByIdAndDelete(uid);
 
   return res.status(200).json({
     success: response ? true : false,
-    users: response
+    mes: response
       ? `User with email: ${response.email} deleted`
       : "No user delete",
   });
@@ -296,7 +291,7 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
 
   return res.status(200).json({
     success: response ? true : false,
-    updateStatus: response ? response : "Update fail",
+    mes: response ? "Updated" : "Update fail",
   });
 });
 

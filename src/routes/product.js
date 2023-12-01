@@ -8,14 +8,19 @@ router.get("/", Controller.getAllProduct);
 
 router.put("/ratings", verifyAccessToken, Controller.ratings);
 
-router.post("/", [verifyAccessToken, isAdmin], Controller.createProduct);
+router.post(
+  "/",
+  [verifyAccessToken, isAdmin],
+  uploader.single("images"),
+  Controller.createProduct
+);
 
 router.put("/:pid", [verifyAccessToken, isAdmin], Controller.updateProduct);
 
 router.put(
   "/uploadimage/:pid",
   [verifyAccessToken, isAdmin],
-  uploader.array("images", 10), // Use "images" as the field name
+  uploader.single("images"), // Use "images" as the field name
   Controller.uploadImagesProduct
 );
 

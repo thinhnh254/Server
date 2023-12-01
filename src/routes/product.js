@@ -15,7 +15,12 @@ router.post(
   Controller.createProduct
 );
 
-router.put("/:pid", [verifyAccessToken, isAdmin], Controller.updateProduct);
+router.put(
+  "/:pid",
+  [verifyAccessToken, isAdmin],
+  uploader.single("images"),
+  Controller.updateProduct
+);
 
 router.put(
   "/uploadimage/:pid",

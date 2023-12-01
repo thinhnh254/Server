@@ -4,7 +4,7 @@ const slugify = require("slugify");
 
 const createProduct = asyncHandler(async (req, res) => {
   const { title, price, description, category } = req.body;
-  const images = req?.file?.path;
+  const images = req?.file?.images[0].path;
 
   if (!(title && price && description && category)) {
     throw new Error("Missing input");
@@ -38,6 +38,7 @@ const getAllProduct = asyncHandler(async (req, res) => {
   const queries = { ...req.query };
   const excludeFields = ["limit", "sort", "page", "fields"];
   excludeFields.forEach((el) => delete queries[el]);
+
   let queryString = JSON.stringify(queries);
   queryString = queryString.replace(
     /\b(gte|gt|lt|lte)\b/g,
@@ -49,11 +50,13 @@ const getAllProduct = asyncHandler(async (req, res) => {
   if (queries?.title) {
     formatedQueries.title = { $regex: queries.title, $options: "i" };
   }
-  if (queries?.category) {
-    formatedQueries.category = { $regex: queries.category, $options: "i" };
+  if (req.query.q) {
+    delete formatedQueries.q;
+    formatedQueries["$or"] = [
+      { title: { $regex: req.query.q, $options: "i" } },
+    ];
   }
-  const q = { ...formatedQueries };
-  let queryCommand = Product.find(q);
+  let queryCommand = Product.find(formatedQueries);
 
   //Sorting
   if (req.query.sort) {
@@ -72,15 +75,15 @@ const getAllProduct = asyncHandler(async (req, res) => {
   const limit = +req.query.limit || process.env.LIMIT_PRODUCTS;
   const skip = (page - 1) * limit;
   queryCommand.skip(skip).limit(limit);
-
   try {
     const response = await queryCommand.exec();
     const counts = await Product.find(formatedQueries).countDocuments();
+    //  const response = await User.find().select("-password -role -refreshToken");
 
     return res.status(200).json({
       success: response ? true : false,
       counts,
-      products: response ? response : "Can not get all product!",
+      products: response ? response : "Cannot get all Products",
     });
   } catch (err) {
     // Handle any errors that occur during the query or counting
@@ -90,6 +93,12 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
   const { pid } = req.params;
+  const file = req?.file;
+
+  if (file.images) {
+    req.body.images = file?.images[0].path;
+  }
+
   if (req.body && req.body.title) {
     req.body.slug = slugify(req.body.title);
   }

@@ -9,8 +9,8 @@ const sendMail = require("../ultils/sendMail");
 const crypto = require("crypto");
 
 const register = asyncHandler(async (req, res) => {
-  const { email, password, firstname, lastname } = req.body;
-  if (!email || !password || !lastname || !firstname)
+  const { email, password, firstname, lastname, mobile } = req.body;
+  if (!email || !password || !lastname || !firstname || !mobile)
     return res.status(400).json({
       success: false,
       message: "Missing inputs",
@@ -261,19 +261,28 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
   const { _id } = req.user;
+  const { firstname, lastname, email, mobile } = req.body
+  const data = { firstname, lastname, email, mobile };
+  if (req.file) {
+    data.avatar = req.file.path
+  }
   if (!_id || Object.keys(req.body).length === 0) {
     return res.status(400).json({
       success: false,
       message: "Something went wrong",
     });
   }
-  const response = await User.findByIdAndUpdate(_id, req.body, {
-    new: true,
-  }).select("-password -role -refreshToken");
+  const response = await User.findByIdAndUpdate(
+    _id,
+    data,
+    {
+      new: true,
+    }
+  ).select("-password -role -refreshToken");
 
   return res.status(200).json({
     success: response ? true : false,
-    updateStatus: response ? response : "Update fail",
+    mes: response ? 'Updated' : "Update fail",
   });
 });
 

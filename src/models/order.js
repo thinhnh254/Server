@@ -5,20 +5,18 @@ var orderSchema = new mongoose.Schema({
   products: [
     {
       product: { type: mongoose.Types.ObjectId, ref: "Product" },
-      count: Number,
-      color: String,
+      quantity: Number,
+      price: Number,
+      images: String,
+      title: String,
     },
   ],
   status: {
     type: String,
-    default: "Pending...",
-    enum: ["Cancel", "Pending...", "Success"],
+    default: "Cancel",
+    enum: ["Cancel", "Success"],
   },
   total: Number,
-  coupon: {
-    type: mongoose.Types.ObjectId,
-    ref: "Coupon",
-  },
   orderBy: {
     type: mongoose.Types.ObjectId,
     ref: "User",

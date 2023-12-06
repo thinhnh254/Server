@@ -93,16 +93,21 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
   const { pid } = req.params;
-  const file = req?.file;
-
-  if (file.images) {
-    req.body.images = file?.images[0].path;
+  // const file = req?.file;
+  const { title, price, category, quantity, description } = req.body;
+  const data = { title, price, category, quantity, description };
+  if (req.file) {
+    data.images = req.file.path;
   }
 
-  if (req.body && req.body.title) {
-    req.body.slug = slugify(req.body.title);
-  }
-  const updatedProduct = await Product.findByIdAndUpdate(pid, req.body, {
+  // if (file.images) {
+  //   req.body.images = file?.images[0].path;
+  // }
+
+  // if (req.body && req.body.title) {
+  //   req.body.slug = slugify(req.body.title);
+  // }
+  const updatedProduct = await Product.findByIdAndUpdate(pid, data, {
     new: true,
   });
 

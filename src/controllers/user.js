@@ -71,7 +71,13 @@ const login = asyncHandler(async (req, res) => {
 const getCurrent = asyncHandler(async (req, res) => {
   const _id = req.user;
 
-  const user = await User.findById(_id).select("-password  -refreshToken");
+  const user = await User.findById(_id).select("-password  -refreshToken").populate({
+    path: 'cart',
+    populate: {
+      path: 'product',
+      select: 'title images price'
+    }
+  })
 
   return res.status(200).json({
     success: user ? true : false,
@@ -261,10 +267,10 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  const { firstname, lastname, email, mobile } = req.body
+  const { firstname, lastname, email, mobile } = req.body;
   const data = { firstname, lastname, email, mobile };
   if (req.file) {
-    data.avatar = req.file.path
+    data.avatar = req.file.path;
   }
   if (!_id || Object.keys(req.body).length === 0) {
     return res.status(400).json({
@@ -272,17 +278,13 @@ const updateUser = asyncHandler(async (req, res) => {
       message: "Something went wrong",
     });
   }
-  const response = await User.findByIdAndUpdate(
-    _id,
-    data,
-    {
-      new: true,
-    }
-  ).select("-password -role -refreshToken");
+  const response = await User.findByIdAndUpdate(_id, data, {
+    new: true,
+  }).select("-password -role -refreshToken");
 
   return res.status(200).json({
     success: response ? true : false,
-    mes: response ? 'Updated' : "Update fail",
+    mes: response ? "Updated" : "Update fail",
   });
 });
 
@@ -328,8 +330,8 @@ const updateUserAddress = asyncHandler(async (req, res) => {
 
 const updateCart = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  const { pid, quantity, color } = req.body;
-  if (!pid || !quantity || !color) {
+  const { pid, quantity = 1 } = req.body;
+  if (!pid || !quantity) {
     return res.status(200).json({
       success: false,
       message: "Missing Input",
@@ -341,41 +343,55 @@ const updateCart = asyncHandler(async (req, res) => {
   );
 
   if (alreadyProduct) {
-    if (alreadyProduct.color === color) {
-      const response = await User.updateOne(
-        { cart: { $elemMatch: alreadyProduct } },
-        { $set: { "cart.$.quantity": quantity } },
-        { new: true }
-      );
-
-      return res.status(200).json({
-        success: response ? true : false,
-        updateStatus: response ? response : "Update fail",
-      });
-    } else {
-      const response = await User.findByIdAndUpdate(
-        _id,
-        { $push: { cart: { product: pid, quantity, color } } },
-        { new: true }
-      );
-
-      return res.status(200).json({
-        success: response ? true : false,
-        updateStatus: response ? response : "Update fail",
-      });
-    }
-  } else {
-    const response = await User.findByIdAndUpdate(
-      _id,
-      { $push: { cart: { product: pid, quantity, color } } },
+    const response = await User.updateOne(
+      { cart: { $elemMatch: alreadyProduct } },
+      { $set: { "cart.$.quantity": quantity } },
       { new: true }
     );
 
     return res.status(200).json({
       success: response ? true : false,
-      updateStatus: response ? response : "Update fail",
+      mes: response ? "Updated" : "Update fail",
+    });
+  } else {
+    const response = await User.findByIdAndUpdate(
+      _id,
+      { $push: { cart: { product: pid, quantity } } },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: response ? true : false,
+      mes: response ? "Updated" : "Update fail",
     });
   }
+});
+
+const removeProductInCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const { pid } = req.params;
+  const user = await User.findById(_id).select("cart");
+  const alreadyProduct = user?.cart?.find(
+    (el) => el.product.toString() === pid
+  );
+
+  if (!alreadyProduct) {
+    return res.status(200).json({
+      success: true,
+      mes: "Updated",
+    });
+  }
+
+  const response = await User.findByIdAndUpdate(
+    _id,
+    { $pull: { cart: { product: pid} } },
+    { new: true }
+  );
+
+  return res.status(200).json({
+    success: response ? true : false,
+    mes: response ? "Updated" : "Update fail",
+  });
 });
 
 module.exports = {
@@ -392,4 +408,5 @@ module.exports = {
   updateUserByAdmin,
   updateUserAddress,
   updateCart,
+  removeProductInCart,
 };

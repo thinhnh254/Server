@@ -33,6 +33,8 @@ router.put("/address", verifyAccessToken, Controller.updateUserAddress);
 
 router.put("/cart", verifyAccessToken, Controller.updateCart);
 
+router.delete("/remove-cart/:pid", verifyAccessToken, Controller.removeProductInCart);
+
 router.put("/:uid", [verifyAccessToken, isAdmin], Controller.updateUserByAdmin);
 
 module.exports = router;
